@@ -10,6 +10,7 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
     let metas = 0;
 
     tree = buildNode();
+    findValue(tree);
 
     function buildNode() {
         id += 1;
@@ -33,7 +34,7 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
 
         while (node.meta.indexOf('') > -1) {
             node.meta.shift();
-            node.meta.push(nums[n]);
+            node.meta.push(parseInt(nums[n]));
             metas += parseInt(nums[n]);
             n += 1;
         }
@@ -43,6 +44,23 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         return node;
     }
 
+    function findValue(node) {
+        if (node.nodes.length > 0) {
+            for (let n of node.nodes) {
+                findValue(n);
+            }
+
+            let value = 0;
+
+            for (let meta of node.meta) {
+                const n = node.nodes[meta - 1];
+                if (n) value += n.value;
+            }
+            node.value = value;
+        } else {
+            node.value = node.meta.reduce((a, b) => a + b, 0);
+        }
+    }
+
     console.log(tree);
-    console.log(metas);
 });
