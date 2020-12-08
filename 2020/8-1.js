@@ -26,8 +26,8 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
 
         ins.done = true;
 
-        if (ope === 'jmp') buildTimeline((i + arg) % prog.length);
-        else buildTimeline((i + 1) % prog.length);
+        if (ope === 'jmp') buildTimeline(i + arg);
+        else buildTimeline(i + 1);
     }
 
     buildTimeline(0);
