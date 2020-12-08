@@ -1,4 +1,3 @@
-const { time } = require('console');
 const fs = require('fs');
 
 fs.readFile('./data.md', 'utf8', (err, data) => {
