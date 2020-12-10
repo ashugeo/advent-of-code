@@ -4,30 +4,31 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
     console.clear();
     data = data.split('\n').map(d => parseInt(d));
     
-    const highest = Math.max(...data) + 3;
-    data.push(highest);
+    data.unshift(0);
     
     data = data.sort((a, b) => a < b ? -1 : 1);
     // console.log(data);
 
-    findFastestPath = (d, path = []) => {
-        if (d === highest) return path;
+    const diffs = [];
 
-        for (let i = 3; i > 0; i -= 1) {
-            if (data.includes(d + i)) {
-                path.push(d  + i);
-                return findFastestPath(d + i, path);
-            }
-        }
+    for (const d of data) {
+        let n = 0;
+        if (data.includes(d + 1)) n += 1;
+        if (data.includes(d + 2)) n += 1;
+        if (data.includes(d + 3)) n += 1;
+        diffs.push(n);
+    }
+    // console.log(diffs);
+
+    let x = new Array(diffs.length).fill(1);
+
+    for (let i = diffs.length - 1; i >= 0; i -= 1) {
+        const d = diffs[i];
+
+        if (d === 1) x[i] = x[i + 1];
+        else if (d === 2) x[i] = x[i + 1] + x[i + 2];
+        else if (d === 3) x[i] = x[i + 1] + x[i + 2] + x[i + 3];
     }
 
-    const path = findFastestPath(0);
-    console.log(data);
-    console.log(path);
-
-    const highestBinary = data.map(_ => '1').join('');
-    const lowestBinary = data.reduce((acc, curr) => path.includes(curr) ? `${acc}1` : `${acc}0`, '');
-
-    console.log(highestBinary);
-    console.log(lowestBinary);
+    console.log(x[0]);
 });
