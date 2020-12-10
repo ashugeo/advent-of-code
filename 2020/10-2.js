@@ -10,17 +10,24 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
     data = data.sort((a, b) => a < b ? -1 : 1);
     // console.log(data);
 
-    let valid = 0;
+    findFastestPath = (d, path = []) => {
+        if (d === highest) return path;
 
-    const findValid = (d, n) => {
-        if (!data.includes(d + n)) return 0;
-
-        if (d + n === highest) return 1;
-        
-        return findValid(d + n, 1) + findValid(d + n, 2) + findValid(d + n, 3);
+        for (let i = 3; i > 0; i -= 1) {
+            if (data.includes(d + i)) {
+                path.push(d  + i);
+                return findFastestPath(d + i, path);
+            }
+        }
     }
 
-    valid += findValid(0, 1) + findValid(0, 2) + findValid(0, 3);
+    const path = findFastestPath(0);
+    console.log(data);
+    console.log(path);
 
-    console.log({valid});
+    const highestBinary = data.map(_ => '1').join('');
+    const lowestBinary = data.reduce((acc, curr) => path.includes(curr) ? `${acc}1` : `${acc}0`, '');
+
+    console.log(highestBinary);
+    console.log(lowestBinary);
 });
