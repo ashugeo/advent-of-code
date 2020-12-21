@@ -13,14 +13,11 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         while (isNaN(line)) {
             let pair = line.match(/\(\d+ \+ \d+\)/)?.[0];
             if (!pair) pair = line.match(/\d+ \+ \d+/)?.[0];
-
             if (!pair) pair = line.match(/\d+ \+ \([\d\* ]+\)/)?.[0];
             if (!pair) pair = line.match(/\([\d\* ]+\) \+ \d+/)?.[0];
-            
             if (!pair) pair = line.match(/\([\d\* ]+\) \+ \([\d\* ]+\)/)?.[0];
-
             if (!pair) {
-                pair = line.match(/\d+ \+ [\d\*\(\) ]+|[\d\*\(\) ]+ \+ \d+/)?.[0].trim();
+                pair = line.match(/\d+ \+ \([\d\*\(\) ]+\)|\([\d\*\(\) ]+\) \+ \d+/)?.[0].trim();
 
                 if (pair) {
                     let par = -1;
@@ -41,23 +38,11 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
             if (!pair) pair = line.match(/\(\d+\)/)?.[0];
 
             line = line.replace(pair, `${eval(pair)}`);
-
-            // console.log(pair);
-            // console.log('-');
-            // console.log(line);
         }
 
-        console.log(line);
+        // console.log(line);
         total += parseInt(line);
     }
 
     console.log(total);
 });
-
-//  27078994731993
-//  98621258158412
-// 237940609397646
-// 240019893422125
-// 240450807308313
-// 241215764951770
-// 316238181417131
