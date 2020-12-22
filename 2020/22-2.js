@@ -14,26 +14,39 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
 
     // console.log(players);
 
+    let games = 0;
+
     const playGame = (game, players) => {
+        games += 1;
+
         console.log(`== Game ${game} ==`);
+
+        const history = [];
         
         let round = 0;
         while (players[0].length && players[1].length) {
             round += 1;
+
+            if (history.some(entry => entry[0] === players[0].join(',') && entry[1] === players[1].join(','))) {
+                const winnerID = 0;
+                console.log(`The winner of game ${game} is player ${winnerID + 1}!`);
+                return winnerID;
+            }
+            
+            history.push([players[0].join(','), players[1].join(',')]);
     
-            console.log('');
-            console.log(`-- Round ${round} (Game ${game}) --`);
+            console.log(`\n-- Round ${round} (Game ${game}) --`);
             console.log(`Player 1's deck: ${players[0].join(', ')}`);
             console.log(`Player 2's deck: ${players[1].join(', ')}`);
             console.log(`Player 1 plays: ${players[0][0]}`);
             console.log(`Player 2 plays: ${players[1][0]}`);
     
+            let winnerID;
             if (
                 players[0].length - 1 >= players[0][0] &&
                 players[1].length - 1 >= players[1][0]
             ) {
-                console.log('Playing a sub-game to determine the winner...');
-                console.log('');
+                console.log('Playing a sub-game to determine the winner...\n');
 
                 const copies = [];
 
@@ -46,15 +59,15 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
                     copies[i] = copy;
                 }
 
-                const winnerID = playGame(game + 1, copies);
-                console.log(`Player ${winnerID + 1} wins round ${round} of game ${game}!`);
-                continue;
+                winnerID = playGame(games + 1, copies);
+            } else {
+                winnerID = players[0][0] > players[1][0] ? 0 : 1;
             }
     
-            if (players[0][0] > players[1][0]) {
+            if (winnerID === 0) {
                 console.log(`Player 1 wins round ${round} of game ${game}!`);
                 players[0].push(players[0][0], players[1][0]);
-            } else {
+            } else if (winnerID === 1) {
                 console.log(`Player 2 wins round ${round} of game ${game}!`);
                 players[1].push(players[1][0], players[0][0]);
             }
@@ -65,25 +78,27 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
 
         const winnerID = players[0].length > players[1].length ? 0 : 1;
 
+        console.log(`The winner of game ${game} is player ${winnerID + 1}!`);
+
         if (game === 1) {
-            // console.log('');
-            // console.log('== Post-game results ==');
-            // console.log(`Player 1's deck: ${players[0].join(', ')}`);
-            // console.log(`Player 2's deck: ${players[1].join(', ')}`);
+            console.log('\n== Post-game results ==');
+            console.log(`Player 1's deck: ${players[0].join(', ')}`);
+            console.log(`Player 2's deck: ${players[1].join(', ')}`);
         } else {
-            console.log(`The winner of game ${game} is player ${winnerID + 1}!`);
-            console.log('');
-            console.log(`...anyway, back to game ${game - 1}.`);
-            return winnerID;
+            console.log(`\n...anyway, back to game ${game - 1}.`);
         }
+
+        return winnerID;
     }
 
-    playGame(1, players);
+    const winnerID = playGame(1, players);
 
-    // const score = winner.reduce((acc, curr, i) => {
-    //     acc += curr * (winner.length - i);
-    //     return acc;
-    // }, 0);
+    const score = players[winnerID].reduce((acc, curr, i) => {
+        acc += curr * (players[winnerID].length - i);
+        return acc;
+    }, 0);
     
-    // console.log(score);
+    console.log(score);
 });
+
+// 33642
