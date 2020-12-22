@@ -27,7 +27,7 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         while (players[0].length && players[1].length) {
             round += 1;
 
-            if (history.some(entry => entry[0] === players[0].join(',') && entry[1] === players[1].join(','))) {
+            if (history.some(entry => entry[0] === players[0].join(',') || entry[1] === players[1].join(','))) {
                 const winnerID = 0;
                 console.log(`The winner of game ${game} is player ${winnerID + 1}!`);
                 return winnerID;
