@@ -86,7 +86,7 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
     
             alts.push({
                 flip: f === 1,
-                rotate: 1,
+                rotate: f === 1 ? 3 : 1,
                 layout: transpose([...face]).map(d => d.reverse().join(''))
             });
     
@@ -98,7 +98,7 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
     
             alts.push({
                 flip: f === 1,
-                rotate: 3,
+                rotate: f === 1 ? 1 : 3,
                 layout: transpose([...face]).map(d => d.join(''))
             });
         }
@@ -159,7 +159,6 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
     const topLeft = findTopLeft();
     // console.log({topLeft});
 
-
     const getTiles = () => {
         for (const rotate of [0, 1, 2, 3]) {
             for (const flip of [false, true]) {
@@ -172,7 +171,7 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
                 });
             
                 setTile(topLeft.id, topLeft.layout, rotate, flip, 0, 0);
-        
+                
                 if (tiles.every(d => !isNaN(d.x) && !isNaN(d.y))) return tiles;
             }
         }
