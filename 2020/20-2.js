@@ -20,9 +20,9 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
     const size = Math.sqrt(Object.keys(tiles).length);
 
     const findNeighbor = (tile, side) => {
-        console.log('');
-        console.log('---');
-        console.log(`Find tile to ${side} of ${tile.id}…`);
+        // console.log('');
+        // console.log('---');
+        // console.log(`Find tile to ${side} of ${tile.id}…`);
         const edge = getEdge(tile.layout, side);
         // console.log(edge);
 
@@ -42,9 +42,9 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
                 const _edge = getEdge(alt.layout, target);
 
                 if (edge === _edge) {
-                    console.log(`Tile ${_tile.id} can go to the ${side} of tile ${tile.id} with rotate ${alt.rotate} and flip ${alt.flip}`);
+                    // console.log(`Tile ${_tile.id} can go to the ${side} of tile ${tile.id} with rotate ${alt.rotate} and flip ${alt.flip}`);
 
-                    console.log(alt.layout.join('\n'));
+                    // console.log(alt.layout.join('\n'));
                     
                     if (side === 'top') setTile(_tile.id, alt.layout, alt.rotate, alt.flip, tile.x, tile.y - 1);
                     else if (side === 'right') setTile(_tile.id, alt.layout, alt.rotate, alt.flip, tile.x + 1, tile.y)
@@ -56,7 +56,7 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
     }
 
     const setTile = (id, layout, rotate, flip, x, y) => {
-        console.log({ id, rotate, flip, x, y });
+        // console.log({ id, rotate, flip, x, y });
 
         const tile = tiles.find(d => d.id == id);
         tile.layout = layout;
@@ -159,29 +159,52 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
     }
 
     const topLeft = findTopLeft();
-
-    // console.log(JSON.stringify(topLeft, null, 4));
-
-    // const n = topLeft.neighbors;
-
-    let rotate = 2;
-    // if (n.right && n.bottom) rotate = 0;
-    // else if (n.top && n.right) rotate = 2;
-    // else if (n.left && n.top) rotate = 3;
-    // else if (n.bottom && n.left) rotate = 1;
-
     // console.log({topLeft});
 
-    const alt = getAlts(topLeft.layout).find(d => d.rotate === rotate && d.flip === true);
+    const rotate = 2;
+    const flip = true;
+
+    const alt = getAlts(topLeft.layout).find(d => d.rotate === rotate && d.flip === flip);
     topLeft.layout = alt.layout;
+    // console.log(alt.layout.join('\n'));
 
-    console.log(alt.layout.join('\n'));
+    setTile(topLeft.id, topLeft.layout, rotate, flip, 0, 0);
 
-    // console.log({topLeft});
+    const image = [];
 
-    setTile(topLeft.id, topLeft.layout, rotate, true, 0, 0);
+    for (let y = 0; y < size; y += 1) {
+        const row = tiles
+            .filter(d => d.y === y)
+            .sort((a, b) => a.x - b.x)
+            .map(d => d.id);
 
-    // console.log(tiles);
+        for (const id of row) {
+            const tile = tiles.find(d => d.id === id);
+            // console.log(tile.layout.join('\n'));
+
+            let noBorders = tile.layout;
+            noBorders.shift();
+            noBorders.pop();
+            noBorders = noBorders.map(d => {
+                d = d.split('');
+                d.shift();
+                d.pop();
+                d = d.join('');
+                return d;
+            });
+
+            for (let _y = 0; _y < noBorders.length; _y += 1) {
+                const i = y * noBorders.length + _y;
+                if (!image[i]) image[i] = '';
+                image[i] += noBorders[_y];
+            }
+        }
+    }
+
+    console.log(image);
+
+    const monster = `# #    ##    ##    ### #  #  #  #  #  #`;
+    // console.log(monster);
 
     return;
 
