@@ -17,14 +17,62 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         tiles.push({ id, layout: entry });
     }
 
-    const setTile = (id, rotation, flip, x, y) => {
-        console.log({ id, rotation, flip, x, y });
+    const size = Math.sqrt(Object.keys(tiles).length);
+
+    const findNeighbor = (tile, side) => {
+        console.log('');
+        console.log('---');
+        console.log(`Find tile to ${side} of ${tile.id}…`);
+        const edge = getEdge(tile.layout, side);
+        // console.log(edge);
+
+        const target = {
+            'top': 'bottom',
+            'right': 'left',
+            'bottom': 'top',
+            'left': 'right'
+        }[side];
+
+        for (const _tile of tiles) {
+            if (tile.id === _tile.id) continue;
+
+            const alts = getAlts(_tile.layout);
+
+            for (const alt of alts) {
+                const _edge = getEdge(alt.layout, target);
+
+                if (edge === _edge) {
+                    console.log(`Tile ${_tile.id} can go to the ${side} of tile ${tile.id} with rotate ${alt.rotate} and flip ${alt.flip}`);
+
+                    console.log(alt.layout.join('\n'));
+                    
+                    if (side === 'top') setTile(_tile.id, alt.layout, alt.rotate, alt.flip, tile.x, tile.y - 1);
+                    else if (side === 'right') setTile(_tile.id, alt.layout, alt.rotate, alt.flip, tile.x + 1, tile.y)
+                    else if (side === 'bottom') setTile(_tile.id, alt.layout, alt.rotate, alt.flip, tile.x, tile.y + 1)
+                    else if (side === 'left') setTile(_tile.id, alt.layout, alt.rotate, alt.flip, tile.x - 1, tile.y)
+                }
+            }
+        }
+    }
+
+    const setTile = (id, layout, rotate, flip, x, y) => {
+        console.log({ id, rotate, flip, x, y });
 
         const tile = tiles.find(d => d.id == id);
-        console.log(tile);
+        tile.layout = layout;
+        tile.rotate = rotate;
+        tile.flip = flip;
+        tile.x = x;
+        tile.y = y;
+        // console.log(tile);
+
+        if (x + 1 < size && !tiles.find(d => d.x === x + 1 && d.y === y)) findNeighbor(tile, 'right');
+        if (y + 1 < size && !tiles.find(d => d.x === x && d.y === y + 1)) findNeighbor(tile, 'bottom');
     }
 
     const getAlts = layout => {
+        layout = layout.map(d => d.split(''));
+
         const alts = [];
 
         let flip = layout.map(d => [...d].reverse());
@@ -76,7 +124,64 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         }
     }
 
-    setTile(tiles[0].id, 0, 0, 0, 0);
+    findTopLeft = () => {
+        for (const tile of tiles) {
+            let neighbors = {};
+
+            for (const dir of [0, 1, 2, 3]) {
+                const side = ['top', 'right', 'bottom', 'left'][dir];
+                const target = ['bottom', 'left', 'top', 'right'][dir];
+    
+                const edge = getEdge(tile.layout, side);
+    
+                for (const _tile of tiles) {
+                    if (tile.id === _tile.id) continue;
+
+                    const alts = getAlts(_tile.layout);
+    
+                    for (const alt of alts) {
+                        const _edge = getEdge(alt.layout, target);
+    
+                        if (edge === _edge) {
+                            // console.log(`Tile ${_tile.id} can go to the ${side} of tile ${tile.id} with rotate ${alt.rotate} and flip ${alt.flip}`);
+
+                            neighbors[side] = _tile;
+                        }
+                    }
+                }
+            }
+
+            if (Object.keys(neighbors).length === 2) {
+                tile.neighbors = neighbors;
+                return tile;
+            }
+        }
+    }
+
+    const topLeft = findTopLeft();
+
+    // console.log(JSON.stringify(topLeft, null, 4));
+
+    // const n = topLeft.neighbors;
+
+    let rotate = 2;
+    // if (n.right && n.bottom) rotate = 0;
+    // else if (n.top && n.right) rotate = 2;
+    // else if (n.left && n.top) rotate = 3;
+    // else if (n.bottom && n.left) rotate = 1;
+
+    // console.log({topLeft});
+
+    const alt = getAlts(topLeft.layout).find(d => d.rotate === rotate && d.flip === true);
+    topLeft.layout = alt.layout;
+
+    console.log(alt.layout.join('\n'));
+
+    // console.log({topLeft});
+
+    setTile(topLeft.id, topLeft.layout, rotate, true, 0, 0);
+
+    // console.log(tiles);
 
     return;
 
@@ -92,49 +197,12 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         console.log('---');
         console.log(tile);
 
-        for (const dir of [0, 1, 2, 3]) {
-            const side = ['top', 'right', 'bottom', 'left'][dir];
-            const target = ['bottom', 'left', 'top', 'right'][dir];
-
-            // console.log(`Take ${side}, find ${target}`);
-            const edge = getEdge(tile.alts[0].layout, side);
-
-            for (const _tile of tiles) {
-                if (tile.id === _tile.id) continue;
-
-                for (const _alt of _tile.alts) {
-                    const _edge = getEdge(_alt.layout, target);
-
-                    if (edge === _edge) {
-                        console.log(`Tile ${_tile.id} can go to the ${side} of tile ${tile.id} with rotate ${_alt.rotate} and flip ${_alt.flip}`);
-
-                        if (side === 'top') _tile.coords = { x: tile.coords.x, y: tile.coords.y - 1};
-                        else if (side === 'right') _tile.coords = { x: tile.coords.x + 1, y: tile.coords.y};
-                        else if (side === 'bottom') _tile.coords = { x: tile.coords.x, y: tile.coords.y + 1};
-                        else if (side === 'left') _tile.coords = { x: tile.coords.x - 1, y: tile.coords.y};
-
-                        _tile.rotate = _alt.rotate;
-                        _tile.flip = _alt.flip;
-                    }
-                }
-            }
-        }
     }
     
     console.log(tiles);
     // console.log(JSON.stringify(links, null, 4));
 
     return;
-
-    const topLeftID = Object.keys(links).find(d => {
-        const sides = [
-            links[d].neighbors['top'],
-            links[d].neighbors['right'],
-            links[d].neighbors['bottom'],
-            links[d].neighbors['left']
-        ].filter(d => d);
-        return sides.length === 2;
-    });
 
     const setCoords = (id, x, y) => {
         console.log('');
@@ -184,7 +252,6 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
 
     return;
 
-    // const size = Math.sqrt(Object.keys(tiles).length);
     // const board = new Array(size).fill([]).map(d => new Array(size).fill(null));
     // // console.log(board);
 
