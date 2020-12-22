@@ -64,63 +64,49 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         }
     }
 
-    const first = tiles[Object.keys(tiles)[0]];
-    const alt = first[0];
+    let total = 1;
 
-    const board = [{
-        x: 0,
-        y: 0,
-        id: Object.keys(tiles)[0],
-        ...alt
-    }];
+    for (const [id, alts] of Object.entries(tiles)) {
+        // console.log(id);
 
-    console.log(board);
+        let n = 0;
 
-    for (const dir of [0, 1, 2, 3]) {
-        //   0
-        // 3 X 1
-        //   2
+        for (const alt of alts) {
+            // console.log('');
+            // console.log('---');
 
-        for (const tile of board) {
-            // console.log(tile);
-            console.log('')
-            console.log('---');
-            console.log('')
+            let valid = 0;
 
-            const _x = tile.x + [0, 1, 0, -1][dir];
-            const _y = tile.y + [-1, 0, 1, 0][dir];
+            for (const dir of [0, 1, 2, 3]) {
+                const side = ['top', 'right', 'bottom', 'left'][dir];
+                const target = ['bottom', 'left', 'top', 'right'][dir];
 
-            const side = ['top', 'right', 'bottom', 'left'][dir];
-            const target = ['bottom', 'left', 'top', 'right'][dir];
-
-            if (board.some(t => t.x === _x && t.y === _y)) {
-                console.log(`Board has a tile at { x: ${_x}, y: ${_y} }`);
-            } else {
-                console.log(`Board is empty at { x: ${_x}, y: ${_y} } (take ${side}, find ${target})`);
-
+                // console.log(`Take ${side}, find ${target}`);
                 const edge = getEdge(alt.layout, side);
 
-                for (const [id, alts] of Object.entries(tiles)) {
-                    if (id === Object.keys(tiles)[0]) continue;
-                    // console.log(id);
+                for (const [_id, _alts] of Object.entries(tiles)) {
+                    if (id === _id) continue;
+                    // console.log(_id);
 
-                    for (const alt of alts) {
-                        const _edge = getEdge(alt.layout, target);
+                    for (const _alt of _alts) {
+                        const _edge = getEdge(_alt.layout, target);
                         if (edge === _edge) {
-                            console.log(`Tile ${id} can go to the ${side} of tile ${tile.id}`);
-                            // console.log(bottom);
-                            // console.log(alt);
-
-                            // board.push({
-                            //     x: -1,
-                            //     y: 0,
-                            //     id,
-                            //     ...alt
-                            // })
+                            // console.log(`Tile ${_id} can go to the ${side} of tile ${id}`);
+                            valid += 1;
                         }
                     }
                 }
             }
+
+            n = Math.max(valid, n);
+        }
+
+        if (n === 2) {
+            console.log(id);
+            console.log('---');
+            total *= parseInt(id);
         }
     }
+
+    console.log(total);
 });
