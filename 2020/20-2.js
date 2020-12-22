@@ -216,38 +216,25 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
  #  #  #  #  #  #   `.split('\n');
     monster.shift();
     monster = monster.join(' '.repeat(image[0].length - monster[0].length)).trim().replace(/ /g, '.');
+    // console.log(monster);
 
     const re = new RegExp(monster, 'g');
 
     const images = getAlts(image);
-
+    
     for (const image of images) {
         let output = image.layout.join('');
-        // console.log(output.length);
         
         if (output.match(re)) {
+            let monsters = 0;
 
-            // console.log(output);
-            // console.log(output.match(/#/g).length, '#');
+            for (let i = 0; i < output.length - monster.length; i += 1) {
+                const slice = output.substring(i, i + monster.length);
+                if (slice.match(re)) monsters += 1;
+            }
 
-            output = output.replace(re, (_, index) => {
-                let str =  '';
-                for (const [i, char] of monster.split('').entries()) {
-                    if (char === '#') str += 'O';
-                    else str += output[index + i];
-                }
-
-                return str;
-            });
-
-            // console.log(output.match(/.{1,24}/g).map(d => d.replace(/#/g, '.')));
-            console.log(output.match(/.{1,96}/g).map(d => d.replace(/#/g, '.')));
-
-            console.log(output.match(/#/g).length, '#');
+            // console.log(monsters);
+            console.log(output.match(/#/g).length - monsters * monster.match(/#/g).length);
         }
     }
 });
-
-// 2316
-// 2380
-// 2410
