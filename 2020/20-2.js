@@ -7,45 +7,57 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
 
     const transpose = arr => arr[0].map((_, i) => arr.map(row => row[i]));
 
-    const tiles = {};
+    const tiles = [];
 
     for (let entry of data) {
         entry = entry.split('\n');
         const id = entry[0].match(/\d+/)[0];
         entry.shift();
 
-        let layout = [...entry].map(d => d.split(''));
+        tiles.push({ id, layout: entry });
+    }
+
+    const setTile = (id, rotation, flip, x, y) => {
+        console.log({ id, rotation, flip, x, y });
+
+        const tile = tiles.find(d => d.id == id);
+        console.log(tile);
+    }
+
+    const getAlts = layout => {
+        const alts = [];
+
         let flip = layout.map(d => [...d].reverse());
 
-        tiles[id] = [];
-
         for (const [f, face] of [layout, flip].entries()) {
-            tiles[id].push({
+            alts.push({
                 flip: f === 1,
                 rotate: 0,
                 layout: [...face].map(d => d.join(''))
             });
     
-            tiles[id].push({
+            alts.push({
                 flip: f === 1,
                 // rotate: 1,
                 rotate: f === 1 ? 3 : 1,
                 layout: transpose([...face]).map(d => d.reverse().join(''))
             });
     
-            tiles[id].push({
+            alts.push({
                 flip: f === 1,
                 rotate: 2,
                 layout: [...face].reverse().map(d => d.reverse().join(''))
             });
     
-            tiles[id].push({
+            alts.push({
                 flip: f === 1,
                 // rotate: 3,
                 rotate: f === 1 ? 1 : 3,
                 layout: transpose([...face]).map(d => d.join(''))
             });
         }
+
+        return alts;
     }
 
     const getEdge = (layout, side) => {
@@ -64,42 +76,53 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         }
     }
 
-    const links = {};
+    setTile(tiles[0].id, 0, 0, 0, 0);
 
-    for (const [id, alts] of Object.entries(tiles)) {
-        links[id] = { neighbors: {} };
-        // console.log(id);
+    return;
 
-        // console.log('');
-        // console.log('---');
+    for (const [t, tile] of tiles.entries()) {
+    // for (const [t, tile] of tiles.sort(d => d.id === '1951' ? -1 : 1).entries()) {
+        if (t === 0) {
+            tile.coords = { x: 0, y: 0 };
+            tile.flip = false;
+            tile.rotate = 0;
+        } else if (!tile.coords) continue;
+
+        console.log('');
+        console.log('---');
+        console.log(tile);
 
         for (const dir of [0, 1, 2, 3]) {
             const side = ['top', 'right', 'bottom', 'left'][dir];
             const target = ['bottom', 'left', 'top', 'right'][dir];
 
             // console.log(`Take ${side}, find ${target}`);
-            const edge = getEdge(alts[0].layout, side);
+            const edge = getEdge(tile.alts[0].layout, side);
 
-            for (const [_id, _alts] of Object.entries(tiles)) {
-                if (id === _id) continue;
+            for (const _tile of tiles) {
+                if (tile.id === _tile.id) continue;
 
-                for (const _alt of _alts) {
+                for (const _alt of _tile.alts) {
                     const _edge = getEdge(_alt.layout, target);
+
                     if (edge === _edge) {
-                        console.log(`Tile ${_id} can go to the ${side} of tile ${id} with rotate ${_alt.rotate} and flip ${_alt.flip}`);
-                        
-                        links[id].neighbors[side] = {
-                            id: _id,
-                            rotate: _alt.rotate,
-                            flip: _alt.flip
-                        }
+                        console.log(`Tile ${_tile.id} can go to the ${side} of tile ${tile.id} with rotate ${_alt.rotate} and flip ${_alt.flip}`);
+
+                        if (side === 'top') _tile.coords = { x: tile.coords.x, y: tile.coords.y - 1};
+                        else if (side === 'right') _tile.coords = { x: tile.coords.x + 1, y: tile.coords.y};
+                        else if (side === 'bottom') _tile.coords = { x: tile.coords.x, y: tile.coords.y + 1};
+                        else if (side === 'left') _tile.coords = { x: tile.coords.x - 1, y: tile.coords.y};
+
+                        _tile.rotate = _alt.rotate;
+                        _tile.flip = _alt.flip;
                     }
                 }
             }
         }
     }
-
-    console.log(JSON.stringify(links, null, 4));
+    
+    console.log(tiles);
+    // console.log(JSON.stringify(links, null, 4));
 
     return;
 
