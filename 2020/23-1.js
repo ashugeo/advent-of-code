@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { get } = require('http');
 
 fs.readFile('./data.md', 'utf8', (err, data) => {
     console.clear();
