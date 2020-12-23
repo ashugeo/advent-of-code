@@ -71,11 +71,9 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         if (n < 100) move(cups[curr].next, n + 1);
     };
 
-    move(3);
+    move(labels[0]);
 
     const order = getOrder(cups[1].next);
     order.pop();
     console.log(order.join(''));
 });
-
-// 74938526 too low
