@@ -57,90 +57,75 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
 
     // console.log(tiles);
 
-    const countNeighbors = tile => {
+    const getNeighborsCoords = tile => {
         const { x, y } = tile;
         const neighbors = [];
 
-        neighbors.push(tiles.find(d => d.x === x + 1 && d.y === y)); // e
-        neighbors.push(tiles.find(d => d.x === x - 1 && d.y === y)); // w
+        neighbors.push({ x: x + 1, y }); // e
+        neighbors.push({ x: x - 1, y }); // w
         
         if (Math.abs(y) % 2 === 0) {
-            neighbors.push(tiles.find(d => d.x === x + 1 && d.y === y - 1)); // ne
-            neighbors.push(tiles.find(d => d.x === x + 1 && d.y === y + 1)); // se
-
-            neighbors.push(tiles.find(d => d.x === x && d.y === y - 1)); // nw
-            neighbors.push(tiles.find(d => d.x === x && d.y === y + 1)); // sw
+            neighbors.push({ x: x + 1, y: y - 1 }); // ne
+            neighbors.push({ x: x + 1, y: y + 1 }); // se
+            neighbors.push({ x, y: y - 1 }); // nw
+            neighbors.push({ x, y: y + 1 }); // sw
         } else {
-            neighbors.push(tiles.find(d => d.x === x && d.y === y - 1)); // ne
-            neighbors.push(tiles.find(d => d.x === x && d.y === y + 1)); // se
-
-            neighbors.push(tiles.find(d => d.x === x - 1 && d.y === y - 1)); // nw
-            neighbors.push(tiles.find(d => d.x === x - 1 && d.y === y + 1)); // sw
+            neighbors.push({ x, y: y - 1 }); // ne
+            neighbors.push({ x, y: y + 1 }); // se
+            neighbors.push({ x: x - 1, y: y - 1 }); // nw
+            neighbors.push({ x: x - 1, y: y + 1 }); // sw
         }
 
-        // console.log(neighbors);
+        return neighbors;
+    }
 
-        return [
-            neighbors.filter(d => !d || d.color === 'white').length,
-            neighbors.filter(d => d?.color === 'black').length
-        ];
+    const getNeighbors = tile => {
+        const neighbors = [];
+
+        const coords = getNeighborsCoords(tile);
+        for (const coord of coords) {
+            let tile = tiles.find(d => d.x === coord.x && d.y === coord.y);
+
+            if (!tile) tile = { x: coord.x, y: coord.y, color: 'white' };
+
+            neighbors.push(tile);
+        }
+
+        return neighbors;
     }
 
     for (let day = 1; day <= 100; day += 1) {
         const _tiles = [];
 
-        const minX = Math.min(...tiles.map(d => d.x)) - 1;
-        const maxX = Math.max(...tiles.map(d => d.x)) + 1;
-        const minY = Math.min(...tiles.map(d => d.y)) - 1;
-        const maxY = Math.max(...tiles.map(d => d.y)) + 1;
-        // console.log(minX, maxX);
-        // console.log(minY, maxY);
+        const candidates = [];
 
-        for (let y = minY; y <= maxY; y += 1) {
-            for (let x = minX; x <= maxX; x += 1) {
-                // console.log(y, x);
-                let tile = tiles.find(d => d.x === x && d.y === y);
+        for (const blackTile of tiles.filter(d => d.color === 'black')) {
+            const neighbors = getNeighbors(blackTile);
 
-                if (!tile) {
-                    tile = {
-                        x,
-                        y,
-                        color: 'white'
-                    };
-                    tiles.push(tile);
-                }
-                
-                // console.log(tile);
-                const [whiteNeighbors, blackNeighbors] = countNeighbors(tile);
-                // console.log({whiteNeighbors, blackNeighbors});
+            for (const tile of [blackTile, ...neighbors]) {
+                if (!candidates.some(d => d.x === tile.x && d.y === tile.y)) candidates.push(tile);
+            }
+        }
 
-                if (tile.color === 'black' && (blackNeighbors === 0 || blackNeighbors > 2)) {
-                    _tiles.push({
-                        x,
-                        y,
-                        color: 'white'
-                    });
-                }
-                else if (tile.color === 'white' && blackNeighbors === 2) {
-                    _tiles.push({
-                        x,
-                        y,
-                        color: 'black'
-                    });
-                } else {
-                    _tiles.push({
-                        x,
-                        y,
-                        color: tile.color
-                    });
-                }
+        for (const tile of candidates) {
+            const { x, y } = tile;
+            
+            const neighbors = getNeighbors(tile);
+            const blackNeighbors = neighbors.filter(d => d.color === 'black').length;
+
+            if (tile.color === 'black' && (blackNeighbors === 0 || blackNeighbors > 2)) {
+                _tiles.push({ x, y, color: 'white' });
+            }
+            else if (tile.color === 'white' && blackNeighbors === 2) {
+                _tiles.push({ x, y, color: 'black' });
+            }
+            else {
+                _tiles.push({ x, y, color: tile.color });
             }
         }
 
         tiles = _tiles;
 
         console.log(`day ${day}: ${tiles.filter(d => d.color === 'black').length}`);
-
-        // return;
     }
 });
