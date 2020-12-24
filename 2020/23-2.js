@@ -10,12 +10,12 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
 
     const cups = {};
 
-    for (const [i, label] of labels.entries()) cups[label] = { next: labels[i + 1] || labels[0] };
+    for (const [i, label] of labels.entries()) cups[label] = labels[i + 1] || labels[0];
     
     let curr = labels[0];
 
     for (let n = 1; n <= 10000000; n += 1) {
-        const picks = [cups[curr].next, cups[cups[curr].next].next, cups[cups[cups[curr].next].next].next];
+        const picks = [cups[curr], cups[cups[curr]], cups[cups[cups[curr]]]];
 
         let dest = curr - 1 === 0 ? highest : curr - 1;
         while (picks.includes(dest)) {
@@ -25,12 +25,12 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
 
         if (n % 1000000 === 0) console.log(`\n-- move ${n} --`);
 
-        cups[curr].next = cups[picks[picks.length - 1]].next;
-        cups[picks[picks.length - 1]].next = cups[dest].next;
-        cups[dest].next = picks[0];
+        cups[curr] = cups[picks[picks.length - 1]];
+        cups[picks[picks.length - 1]] = cups[dest];
+        cups[dest] = picks[0];
 
-        curr = cups[curr].next;
+        curr = cups[curr];
     };
 
-    console.log(`${cups[1].next} * ${cups[cups[1].next].next} = ${cups[1].next * cups[cups[1].next].next}`);
+    console.log(`${cups[1]} * ${cups[cups[1]]} = ${cups[1] * cups[cups[1]]}`);
 });
