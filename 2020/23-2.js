@@ -10,12 +10,7 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
 
     const cups = {};
 
-    for (const [i, label] of labels.entries()) {
-        cups[label] = {
-            next: labels[i + 1] || labels[0],
-            prev: labels[i - 1] || labels[labels.length - 1]
-        };
-    }
+    for (const [i, label] of labels.entries()) cups[label] = { next: labels[i + 1] || labels[0] };
     
     let curr = labels[0];
 
@@ -31,13 +26,8 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         if (n % 1000000 === 0) console.log(`\n-- move ${n} --`);
 
         cups[curr].next = cups[picks[picks.length - 1]].next;
-        cups[cups[picks[picks.length - 1]].next].prev = curr;
-
         cups[picks[picks.length - 1]].next = cups[dest].next;
-        cups[cups[dest].next].prev = picks[picks.length - 1];
-
         cups[dest].next = picks[0];
-        cups[picks[0]].prev = dest;
 
         curr = cups[curr].next;
     };
