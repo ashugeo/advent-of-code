@@ -5,11 +5,7 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
     data = data.split('\n');
     // console.log(data);
 
-    let tiles = [{
-        x: 0,
-        y: 0,
-        color: 'white'
-    }];
+    let tiles = { '0|0': 'white' };
 
     for (const line of data) {
         const moves = line.match(/e|se|sw|w|nw|ne/g);
@@ -17,7 +13,6 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
         let y = 0;
 
         for (const move of moves) {
-            // console.log(move);
             if (move === 'e') x += 1;
             else if (move === 'w') x -= 1;
 
@@ -42,90 +37,64 @@ fs.readFile('./data.md', 'utf8', (err, data) => {
             }
         }
 
-        const tile = tiles.find(d => d.x === x && d.y === y);
+        let tile = tiles[`${x}|${y}`];
 
-        if (tile) {
-            tile.color = tile.color === 'black' ? 'white' : 'black';
-        } else {
-            tiles.push({
-                x,
-                y,
-                color: 'black'
-            });
-        }
-    }
-
-    // console.log(tiles);
-
-    const getNeighborsCoords = tile => {
-        const { x, y } = tile;
-        const neighbors = [];
-
-        neighbors.push({ x: x + 1, y }); // e
-        neighbors.push({ x: x - 1, y }); // w
-        
-        if (Math.abs(y) % 2 === 0) {
-            neighbors.push({ x: x + 1, y: y - 1 }); // ne
-            neighbors.push({ x: x + 1, y: y + 1 }); // se
-            neighbors.push({ x, y: y - 1 }); // nw
-            neighbors.push({ x, y: y + 1 }); // sw
-        } else {
-            neighbors.push({ x, y: y - 1 }); // ne
-            neighbors.push({ x, y: y + 1 }); // se
-            neighbors.push({ x: x - 1, y: y - 1 }); // nw
-            neighbors.push({ x: x - 1, y: y + 1 }); // sw
-        }
-
-        return neighbors;
+        if (tile) tiles[`${x}|${y}`] = tile === 'black' ? 'white' : 'black';
+        else tiles[`${x}|${y}`] = 'black';
     }
 
     const getNeighbors = tile => {
+        const [x, y] = tile.split('|').map(d => parseInt(d));
         const neighbors = [];
 
-        const coords = getNeighborsCoords(tile);
-        for (const coord of coords) {
-            let tile = tiles.find(d => d.x === coord.x && d.y === coord.y);
-
-            if (!tile) tile = { x: coord.x, y: coord.y, color: 'white' };
-
-            neighbors.push(tile);
+        neighbors.push(`${x + 1}|${y}`); // e
+        neighbors.push(`${x - 1}|${y}`); // w
+        
+        if (Math.abs(y) % 2 === 0) {
+            neighbors.push(`${x + 1}|${y - 1}`); // ne
+            neighbors.push(`${x + 1}|${y + 1}`); // se
+            neighbors.push(`${x}|${y - 1}`); // nw
+            neighbors.push(`${x}|${y + 1}`); // sw
+        } else {
+            neighbors.push(`${x}|${y - 1}`); // ne
+            neighbors.push(`${x}|${y + 1}`); // se
+            neighbors.push(`${x - 1}|${y - 1}`); // nw
+            neighbors.push(`${x - 1}|${y + 1}`); // sw
         }
 
         return neighbors;
     }
 
     for (let day = 1; day <= 100; day += 1) {
-        const _tiles = [];
+        const _tiles = {};
 
-        const candidates = [];
+        const candidates = {};
 
-        for (const blackTile of tiles.filter(d => d.color === 'black')) {
+        for (const blackTile of Object.keys(tiles).filter(d => tiles[d] === 'black')) {
             const neighbors = getNeighbors(blackTile);
 
             for (const tile of [blackTile, ...neighbors]) {
-                if (!candidates.some(d => d.x === tile.x && d.y === tile.y)) candidates.push(tile);
+                const [x, y] = tile.split('|').map(d => parseInt(d));
+
+                if (!candidates[`${x}|${y}`]) candidates[`${x}|${y}`] = tiles[`${x}|${y}`] || 'white';
             }
         }
 
-        for (const tile of candidates) {
-            const { x, y } = tile;
+        for (const [coord, color] of Object.entries(candidates)) {
+            const [x, y] = coord.split('|').map(d => parseInt(d));
             
-            const neighbors = getNeighbors(tile);
-            const blackNeighbors = neighbors.filter(d => d.color === 'black').length;
+            const neighbors = getNeighbors(coord);
+            const blacks = neighbors.map(d => tiles[d]).filter(d => d === 'black').length;
 
-            if (tile.color === 'black' && (blackNeighbors === 0 || blackNeighbors > 2)) {
-                _tiles.push({ x, y, color: 'white' });
-            }
-            else if (tile.color === 'white' && blackNeighbors === 2) {
-                _tiles.push({ x, y, color: 'black' });
-            }
-            else {
-                _tiles.push({ x, y, color: tile.color });
-            }
+            if (color === 'black' && (blacks === 0 || blacks > 2)) _tiles[`${x}|${y}`] = 'white';
+
+            else if (color === 'white' && blacks === 2) _tiles[`${x}|${y}`] = 'black';
+
+            else _tiles[`${x}|${y}`] = color;
         }
 
         tiles = _tiles;
 
-        console.log(`day ${day}: ${tiles.filter(d => d.color === 'black').length}`);
+        console.log(`day ${day}: ${Object.values(tiles).filter(d => d === 'black').length}`);
     }
 });
