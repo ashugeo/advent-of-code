@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-fs.readFile('./data.txt', 'utf8', (_, data) => {
+fs.readFile('./data.md', 'utf8', (_, data) => {
     data = data.split('\n').filter(d => d).map(d => parseInt(d));
 
     let sum = 0;
