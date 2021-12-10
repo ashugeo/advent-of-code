@@ -11,8 +11,8 @@ fs.readFile('./data.md', 'utf8', (_, data) => {
         let [x1, y1] = start.split(',').map(d => parseInt(d));
         let [x2, y2] = end.split(',').map(d => parseInt(d));
 
-        [x1, x2] = [x1, x2].sort();
-        [y1, y2] = [y1, y2].sort();
+        [x1, x2] = [x1, x2].sort((a, b) => a - b);
+        [y1, y2] = [y1, y2].sort((a, b) => a - b);
 
         if (!(x1 === x2 || y1 === y2)) continue;
 
