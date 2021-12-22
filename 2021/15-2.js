@@ -4,7 +4,38 @@ console.clear();
 fs.readFile('./data.md', 'utf8', async (_, data) => {
     data = data.trim().split('\n');
 
+    let time = Date.now();
+
     // console.log(data);
+    const map = [...data];
+
+    for (let i = 0; i < 4; i += 1) {
+        for (const [y, line] of data.entries()) {
+            for (let value of line.split('').map(d => parseInt(d))) {
+                value += i + 1;
+                if (value >= 10) value -= 9;
+                map[y] += value;
+            }
+        }
+    }
+
+    const _map = [...map];
+
+    for (let i = 0; i < 4; i += 1) {
+        for (const [y, line] of _map.entries()) {
+            let _line = '';
+            for (let value of line.split('').map(d => parseInt(d))) {
+                value += i + 1;
+                if (value >= 10) value -= 9;
+                _line += value;
+            }
+            map.push(_line);
+        }
+    }
+
+    // console.log(map);
+    
+    data = map;
 
     const findNeighbors = cell => {
         let neighbors = [];
@@ -20,15 +51,7 @@ fs.readFile('./data.md', 'utf8', async (_, data) => {
 
     const findCost = (cell) => {
         let value = (cell.parent?.cost || 0) + parseInt(data[cell.y][cell.x]);
-        
-        // console.log('parent', cell.parent);
-        // console.log(`cost of x: ${cell.x} y:${cell.y}, ${value}`);
-
         return value;
-    };
-
-    const isInArray = (cell, array) => {
-        return array.some(a => { return (a.x === cell.x && a.y === cell.y)});
     };
 
     const start = {
@@ -47,12 +70,17 @@ fs.readFile('./data.md', 'utf8', async (_, data) => {
     let end;
 
     let open = findNeighbors(start);
+    let _open = {};
 
     let closed = [start];
+    let _closed = {};
+    _closed[`${start.x}:${start.y}`] = true;
 
     for (let neighbor of open) {
         neighbor.parent = start;
         neighbor.cost = findCost(neighbor, start, objective);
+
+        _closed[`${neighbor.x}:${neighbor.y}`] = true;
     }
 
     while (open.length > 0) {
@@ -62,6 +90,7 @@ fs.readFile('./data.md', 'utf8', async (_, data) => {
         // Remove current from open, add to closed
         open = open.filter(n => { return !(n.x === current.x && n.y === current.y); });
         closed.push(current);
+        _closed[`${current.x}:${current.y}`] = true;
 
         // If current is the objective, path has been found
         if (current.x === objective.x && current.y === objective.y) {
@@ -72,20 +101,20 @@ fs.readFile('./data.md', 'utf8', async (_, data) => {
         let neighbors = findNeighbors(current);
 
         for (let neighbor of neighbors) {
-            // console.log(neighbor);
             // Make sure neighbor has not already been evaluated
-            if (isInArray(neighbor, closed)) continue;
+            if (_closed[`${neighbor.x}:${neighbor.y}`]) continue;
 
             // Compute new cost
             const newCost = findCost(neighbor, start, objective);
 
             // If new cost is lower, or neighbor hasn't been evaluated
-            if (newCost < neighbor.cost || !isInArray(neighbor, open)) {
+            if (newCost < neighbor.cost || !_open[`${neighbor.x}:${neighbor.y}`]) {
                 neighbor.cost = newCost;
                 neighbor.parent = current;
 
-                if (!isInArray(neighbor, open)) {
+                if (!_open[`${neighbor.x}:${neighbor.y}`]) {
                     open.push(neighbor);
+                    _open[`${neighbor.x}:${neighbor.y}`] = true;
                 }
             }
         }
@@ -95,4 +124,5 @@ fs.readFile('./data.md', 'utf8', async (_, data) => {
     if (!end) console.log('no path found');
 
     console.log(end.cost);
+    console.log(`${Date.now() - time}ms`);
 });
